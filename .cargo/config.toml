@@ -1,0 +1,16 @@
+[target.aarch64-apple-ios]
+rustflags = ["-C", "link-arg=-mios-version-min=15.0"]
+
+[target.aarch64-apple-ios-sim]
+rustflags = ["-C", "link-arg=-mios-simulator-version-min=15.0"]
+
+[target.x86_64-apple-ios]
+rustflags = ["-C", "link-arg=-mios-simulator-version-min=15.0"]
+
+[env]
+# Disable macOS-specific SQLite features for iOS builds
+# SQLITE_ENABLE_LOCKING_STYLE=0 disables gethostuuid which is macOS-only
+LIBSQLITE3_FLAGS = { value = "-DSQLITE_OMIT_LOAD_EXTENSION -DSQLITE_ENABLE_LOCKING_STYLE=0", force = true }
+
+# Unset CC so cc-rs uses the correct toolchain for cross-compilation
+CC = { value = "", force = true }

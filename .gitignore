@@ -3,9 +3,11 @@
 **/*.rs.bk
 Cargo.lock
 
-# iOS
+# iOS - Generated UniFFI bindings (rebuild with ./scripts/build-xcframework.sh)
 ios/FuzzyDrugs/Bridge/FuzzyDrugsCore.xcframework/
-ios/FuzzyDrugs/Bridge/fuzzy_drugs.swift
+ios/FuzzyDrugs/Bridge/*.swift
+ios/FuzzyDrugs/Bridge/*.h
+ios/FuzzyDrugs/Bridge/*.modulemap
 *.xcuserstate
 *.xcuserdatad
 DerivedData/

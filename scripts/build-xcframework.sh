@@ -10,10 +10,15 @@ OUTPUT_DIR="$PROJECT_ROOT/ios/FuzzyDrugs/Bridge"
 
 echo "=== Building fuzzy-drugs-core XCFramework ==="
 
-# Set SDKROOT if not already set (fixes CoreFoundation linking on some systems)
-if [ -z "$SDKROOT" ]; then
-    export SDKROOT=$(xcrun --show-sdk-path)
-    echo "Set SDKROOT to $SDKROOT"
+# Clear environment variables that might interfere with cross-compilation
+unset CFLAGS
+unset CPPFLAGS
+unset LDFLAGS
+
+# Prefer rustup-installed toolchain if available
+if [ -f "$HOME/.cargo/bin/cargo" ]; then
+    export PATH="$HOME/.cargo/bin:$PATH"
+    echo "Using rustup toolchain"
 fi
 
 # Ensure we have the required Rust targets
@@ -22,23 +27,28 @@ rustup target add aarch64-apple-ios
 rustup target add aarch64-apple-ios-sim
 rustup target add x86_64-apple-ios
 
-# Install uniffi-bindgen-cli if not present
-if ! command -v uniffi-bindgen &> /dev/null; then
-    echo "Installing uniffi-bindgen..."
-    cargo install uniffi_bindgen
-fi
+cd "$PROJECT_ROOT"
+
+# Clean previous iOS builds
+echo "Cleaning previous iOS builds..."
+cargo clean --target aarch64-apple-ios 2>/dev/null || true
+cargo clean --target aarch64-apple-ios-sim 2>/dev/null || true
+cargo clean --target x86_64-apple-ios 2>/dev/null || true
+
+# Set iOS deployment target
+export IPHONEOS_DEPLOYMENT_TARGET=15.0
 
 # Build for iOS device (arm64)
 echo "Building for iOS device (aarch64-apple-ios)..."
-cargo build --manifest-path "$CORE_DIR/Cargo.toml" --release --target aarch64-apple-ios
+cargo build -p fuzzy-drugs-core --release --target aarch64-apple-ios
 
 # Build for iOS simulator (arm64 for Apple Silicon)
 echo "Building for iOS simulator (aarch64-apple-ios-sim)..."
-cargo build --manifest-path "$CORE_DIR/Cargo.toml" --release --target aarch64-apple-ios-sim
+cargo build -p fuzzy-drugs-core --release --target aarch64-apple-ios-sim
 
 # Build for iOS simulator (x86_64 for Intel Macs)
 echo "Building for iOS simulator (x86_64-apple-ios)..."
-cargo build --manifest-path "$CORE_DIR/Cargo.toml" --release --target x86_64-apple-ios
+cargo build -p fuzzy-drugs-core --release --target x86_64-apple-ios
 
 # Create fat library for simulator
 echo "Creating fat library for simulator..."
@@ -50,13 +60,28 @@ lipo -create \
     "$PROJECT_ROOT/target/x86_64-apple-ios/release/libfuzzy_drugs_core.a" \
     -output "$SIMULATOR_LIB_DIR/libfuzzy_drugs_core.a"
 
-# Generate Swift bindings using proc-macro approach
+# Generate Swift bindings
 echo "Generating Swift bindings..."
 mkdir -p "$OUTPUT_DIR"
 
-# Use the built library to generate bindings
-uniffi-bindgen generate \
-    --library "$PROJECT_ROOT/target/aarch64-apple-ios/release/libfuzzy_drugs_core.a" \
+# Temporarily add cdylib for host build to generate bindings
+echo "Building host dylib for binding generation..."
+CARGO_TOML="$CORE_DIR/Cargo.toml"
+
+# Backup and modify Cargo.toml to add cdylib
+cp "$CARGO_TOML" "$CARGO_TOML.bak"
+sed -i '' 's/crate-type = \["lib", "staticlib"\]/crate-type = ["lib", "staticlib", "cdylib"]/' "$CARGO_TOML"
+
+# Build for host with cdylib
+export SDKROOT=$(xcrun --show-sdk-path)
+cargo build -p fuzzy-drugs-core --release
+
+# Restore Cargo.toml
+mv "$CARGO_TOML.bak" "$CARGO_TOML"
+
+# Generate bindings using the uniffi-bindgen binary
+cargo run -p fuzzy-drugs-core --bin uniffi-bindgen -- \
+    generate --library "$PROJECT_ROOT/target/release/libfuzzy_drugs_core.dylib" \
     --language swift \
     --out-dir "$OUTPUT_DIR"
 
@@ -65,21 +90,38 @@ echo "Creating XCFramework..."
 XCFRAMEWORK_PATH="$OUTPUT_DIR/FuzzyDrugsCore.xcframework"
 rm -rf "$XCFRAMEWORK_PATH"
 
+# Move the generated header to include directory
+mkdir -p "$OUTPUT_DIR/include"
+if [ -f "$OUTPUT_DIR/fuzzy_drugs_coreFFI.h" ]; then
+    mv "$OUTPUT_DIR/fuzzy_drugs_coreFFI.h" "$OUTPUT_DIR/include/"
+fi
+
+# Create module map
+cat > "$OUTPUT_DIR/include/module.modulemap" << 'MODULEMAP_EOF'
+module FuzzyDrugsCoreFFI {
+    header "fuzzy_drugs_coreFFI.h"
+    export *
+}
+MODULEMAP_EOF
+
 xcodebuild -create-xcframework \
     -library "$PROJECT_ROOT/target/aarch64-apple-ios/release/libfuzzy_drugs_core.a" \
-    -headers "$OUTPUT_DIR" \
+    -headers "$OUTPUT_DIR/include" \
     -library "$SIMULATOR_LIB_DIR/libfuzzy_drugs_core.a" \
-    -headers "$OUTPUT_DIR" \
+    -headers "$OUTPUT_DIR/include" \
     -output "$XCFRAMEWORK_PATH"
 
 echo "=== XCFramework created at $XCFRAMEWORK_PATH ==="
 
 # Clean up intermediate files
-echo "Cleaning up..."
-rm -f "$OUTPUT_DIR/fuzzy_drugs_coreFFI.h"
-rm -f "$OUTPUT_DIR/fuzzy_drugs_coreFFI.modulemap"
+rm -rf "$OUTPUT_DIR/include"
 
+echo ""
 echo "=== Done! ==="
+echo ""
+echo "Generated files:"
+echo "  - $XCFRAMEWORK_PATH"
+echo "  - $OUTPUT_DIR/fuzzy_drugs_core.swift"
 echo ""
 echo "Next steps:"
 echo "1. Open ios/FuzzyDrugs/FuzzyDrugs.xcodeproj in Xcode"

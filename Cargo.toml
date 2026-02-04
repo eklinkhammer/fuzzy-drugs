@@ -24,7 +24,7 @@ anyhow = "1.0"
 rusqlite = { version = "0.32", features = ["bundled"] }
 
 # FFI
-uniffi = "0.28"
+uniffi = { version = "0.28", features = ["cli"] }
 
 # Crypto
 sha2 = "0.10"

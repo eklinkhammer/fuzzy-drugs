@@ -7,8 +7,14 @@ authors.workspace = true
 description = "Core library for veterinary drug resolution and encounter management"
 
 [lib]
-crate-type = ["lib"]
+# staticlib for iOS linking, lib for Rust dependencies
+# NOTE: To generate Swift bindings, temporarily add "cdylib" and build for host
+crate-type = ["lib", "staticlib"]
 name = "fuzzy_drugs_core"
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
 
 [dependencies]
 serde.workspace = true
