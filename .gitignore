@@ -1,0 +1,38 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# iOS
+ios/FuzzyDrugs/Bridge/FuzzyDrugsCore.xcframework/
+ios/FuzzyDrugs/Bridge/fuzzy_drugs.swift
+*.xcuserstate
+*.xcuserdatad
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# IDE
+.idea/
+*.swp
+*.swo
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Models (large files)
+*.gguf
+*.mlmodel
+*.mlmodelc/
+
+# Test artifacts
+*.wav
+*.tmp
+
+# Build
+*.a
+*.dylib
+*.so

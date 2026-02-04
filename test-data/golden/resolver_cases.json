@@ -1,0 +1,249 @@
+{
+  "description": "Golden test cases for the semantic resolver",
+  "version": "1.0",
+  "cases": [
+    {
+      "id": "rimadyl-basic",
+      "input": {
+        "drug_name": "rimadyl",
+        "dose": 100,
+        "unit": "mg",
+        "route": "PO",
+        "species": "canine"
+      },
+      "expected": {
+        "normalized_name": "carprofen",
+        "normalized_dose": 100,
+        "normalized_unit": "mg",
+        "normalized_route": "PO",
+        "expected_sku_prefix": "CARP"
+      }
+    },
+    {
+      "id": "ace-injection",
+      "input": {
+        "drug_name": "ace",
+        "dose": 0.5,
+        "unit": "cc",
+        "route": "IM",
+        "species": "canine"
+      },
+      "expected": {
+        "normalized_name": "acepromazine",
+        "normalized_dose": 0.5,
+        "normalized_unit": "mL",
+        "normalized_route": "IM",
+        "expected_sku_prefix": "ACE"
+      }
+    },
+    {
+      "id": "metacam-oral",
+      "input": {
+        "drug_name": "metacam",
+        "dose": 1.5,
+        "unit": "mL",
+        "route": "orally",
+        "species": "feline"
+      },
+      "expected": {
+        "normalized_name": "meloxicam",
+        "normalized_dose": 1.5,
+        "normalized_unit": "mL",
+        "normalized_route": "PO",
+        "expected_sku_prefix": "MELOX"
+      }
+    },
+    {
+      "id": "cerenia-nausea",
+      "input": {
+        "drug_name": "cerenia",
+        "dose": 24,
+        "unit": "mg",
+        "route": "by mouth",
+        "species": "canine"
+      },
+      "expected": {
+        "normalized_name": "maropitant",
+        "normalized_dose": 24,
+        "normalized_unit": "mg",
+        "normalized_route": "PO"
+      }
+    },
+    {
+      "id": "convenia-injection",
+      "input": {
+        "drug_name": "convenia",
+        "dose": 0.4,
+        "unit": "ml",
+        "route": "subcutaneously",
+        "species": "feline"
+      },
+      "expected": {
+        "normalized_name": "cefovecin",
+        "normalized_dose": 0.4,
+        "normalized_unit": "mL",
+        "normalized_route": "SQ"
+      }
+    },
+    {
+      "id": "baytril-iv",
+      "input": {
+        "drug_name": "baytril",
+        "dose": 2.5,
+        "unit": "mg",
+        "route": "IV",
+        "species": "canine"
+      },
+      "expected": {
+        "normalized_name": "enrofloxacin",
+        "normalized_dose": 2.5,
+        "normalized_unit": "mg",
+        "normalized_route": "IV"
+      }
+    },
+    {
+      "id": "dex-steroid",
+      "input": {
+        "drug_name": "dex",
+        "dose": 4,
+        "unit": "mg",
+        "route": "IM",
+        "species": "equine"
+      },
+      "expected": {
+        "normalized_name": "dexamethasone",
+        "normalized_dose": 4,
+        "normalized_unit": "mg",
+        "normalized_route": "IM"
+      }
+    },
+    {
+      "id": "torb-sedation",
+      "input": {
+        "drug_name": "torb",
+        "dose": 0.2,
+        "unit": "ml",
+        "route": "IV",
+        "species": "canine"
+      },
+      "expected": {
+        "normalized_name": "butorphanol",
+        "normalized_dose": 0.2,
+        "normalized_unit": "mL",
+        "normalized_route": "IV"
+      }
+    },
+    {
+      "id": "microgram-conversion",
+      "input": {
+        "drug_name": "test drug",
+        "dose": 500,
+        "unit": "mcg",
+        "route": "PO",
+        "species": "canine"
+      },
+      "expected": {
+        "normalized_name": "test drug",
+        "normalized_dose": 0.5,
+        "normalized_unit": "mg",
+        "normalized_route": "PO"
+      }
+    },
+    {
+      "id": "gram-conversion",
+      "input": {
+        "drug_name": "test drug",
+        "dose": 2,
+        "unit": "g",
+        "route": "PO",
+        "species": "equine"
+      },
+      "expected": {
+        "normalized_name": "test drug",
+        "normalized_dose": 2000,
+        "normalized_unit": "mg",
+        "normalized_route": "PO"
+      }
+    },
+    {
+      "id": "keppra-anticonvulsant",
+      "input": {
+        "drug_name": "keppra",
+        "dose": 500,
+        "unit": "mg",
+        "route": "orally",
+        "species": "canine"
+      },
+      "expected": {
+        "normalized_name": "levetiracetam",
+        "normalized_dose": 500,
+        "normalized_unit": "mg",
+        "normalized_route": "PO"
+      }
+    },
+    {
+      "id": "vetmedin-cardiac",
+      "input": {
+        "drug_name": "vetmedin",
+        "dose": 2.5,
+        "unit": "mg",
+        "route": "PO",
+        "species": "canine"
+      },
+      "expected": {
+        "normalized_name": "pimobendan",
+        "normalized_dose": 2.5,
+        "normalized_unit": "mg",
+        "normalized_route": "PO"
+      }
+    },
+    {
+      "id": "lasix-diuretic",
+      "input": {
+        "drug_name": "lasix",
+        "dose": 40,
+        "unit": "mg",
+        "route": "IV",
+        "species": "canine"
+      },
+      "expected": {
+        "normalized_name": "furosemide",
+        "normalized_dose": 40,
+        "normalized_unit": "mg",
+        "normalized_route": "IV"
+      }
+    },
+    {
+      "id": "dexdomitor-sedation",
+      "input": {
+        "drug_name": "dexdomitor",
+        "dose": 0.1,
+        "unit": "ml",
+        "route": "IM",
+        "species": "canine"
+      },
+      "expected": {
+        "normalized_name": "dexmedetomidine",
+        "normalized_dose": 0.1,
+        "normalized_unit": "mL",
+        "normalized_route": "IM"
+      }
+    },
+    {
+      "id": "clavamox-antibiotic",
+      "input": {
+        "drug_name": "clavamox",
+        "dose": 250,
+        "unit": "mg",
+        "route": "by mouth",
+        "species": "canine"
+      },
+      "expected": {
+        "normalized_name": "amoxicillin-clavulanate",
+        "normalized_dose": 250,
+        "normalized_unit": "mg",
+        "normalized_route": "PO"
+      }
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+// UniFFI Interface Definition for fuzzy-drugs-core
+
+namespace fuzzy_drugs {
+    // Factory functions instead of constructors with errors
+    [Throws=FuzzyDrugsError]
+    FuzzyDrugsCore open_database(string path);
+
+    [Throws=FuzzyDrugsError]
+    FuzzyDrugsCore open_database_in_memory();
+};
+
+// Custom error type
+[Error]
+enum FuzzyDrugsError {
+    "DatabaseError",
+    "NotFound",
+    "InvalidInput",
+    "SerializationError",
+    "SyncError",
+};
+
+// ============================================================================
+// Main API Object
+// ============================================================================
+
+interface FuzzyDrugsCore {
+    // Catalog Operations
+    [Throws=FuzzyDrugsError]
+    void upsert_catalog_item(FfiCatalogItem item);
+
+    [Throws=FuzzyDrugsError]
+    FfiCatalogItem? get_catalog_item(string sku);
+
+    [Throws=FuzzyDrugsError]
+    sequence<FfiCatalogItem> search_catalog(string query, u32 limit);
+
+    // Patient Operations
+    [Throws=FuzzyDrugsError]
+    FfiPatient create_patient(string name, string species);
+
+    [Throws=FuzzyDrugsError]
+    FfiPatient? get_patient(string local_id);
+
+    [Throws=FuzzyDrugsError]
+    sequence<FfiPatient> search_patients(string query, u32 limit);
+
+    // Draft Operations
+    [Throws=FuzzyDrugsError]
+    FfiEncounterDraft create_draft(string patient_id);
+
+    [Throws=FuzzyDrugsError]
+    FfiEncounterDraft? get_draft(string draft_id);
+
+    [Throws=FuzzyDrugsError]
+    sequence<FfiEncounterDraft> get_pending_review_drafts();
+
+    // Resolver Operations
+    [Throws=FuzzyDrugsError]
+    FfiResolvedItem resolve_mention(
+        string drug_name,
+        f64? dose,
+        string? unit,
+        string? route,
+        string? patient_species,
+        f64? patient_weight_kg
+    );
+
+    // Merkle Tree Operations
+    [Throws=FuzzyDrugsError]
+    FfiLeafCommit commit_encounter(FfiReviewedEncounter encounter);
+
+    [Throws=FuzzyDrugsError]
+    FfiTreeStats get_tree_stats();
+
+    [Throws=FuzzyDrugsError]
+    boolean has_unsynced_changes();
+
+    // Export Operations
+    [Throws=FuzzyDrugsError]
+    string export_billing_json();
+
+    [Throws=FuzzyDrugsError]
+    string export_billing_csv();
+
+    [Throws=FuzzyDrugsError]
+    string export_compliance_json();
+};
+
+// ============================================================================
+// Data Types
+// ============================================================================
+
+dictionary FfiCatalogItem {
+    string sku;
+    string name;
+    sequence<string> aliases;
+    string? concentration;
+    string? package_size;
+    sequence<string> species;
+    sequence<string> routes;
+    boolean active;
+};
+
+dictionary FfiPatient {
+    string local_id;
+    string? server_id;
+    string name;
+    string species;
+    string? breed;
+    f64? weight_kg;
+};
+
+dictionary FfiEncounterDraft {
+    string draft_id;
+    string patient_id;
+    string transcript;
+    string status;
+    u32 pending_review_count;
+    f64? lowest_confidence;
+};
+
+dictionary FfiResolvedItem {
+    string normalized_name;
+    f64? normalized_dose;
+    string? normalized_unit;
+    string? normalized_route;
+    string top_sku;
+    string top_name;
+    f64 top_confidence;
+    sequence<FfiScoredCandidate> alternatives;
+};
+
+dictionary FfiScoredCandidate {
+    string sku;
+    string name;
+    f64 confidence;
+};
+
+dictionary FfiReviewedEncounter {
+    string draft_id;
+    string patient_id;
+    string? patient_server_id;
+    string transcript;
+    sequence<FfiLineItem> line_items;
+    string reviewed_by;
+    string? notes;
+};
+
+dictionary FfiLineItem {
+    string sku;
+    string name;
+    f64 quantity;
+    string unit;
+    string? route;
+    string original_mention;
+};
+
+dictionary FfiLeafCommit {
+    string leaf_hash;
+    string root_hash;
+    u32 tree_height;
+    u32 leaf_count;
+};
+
+dictionary FfiTreeStats {
+    string? root_hash;
+    u32 height;
+    u32 leaf_count;
+};

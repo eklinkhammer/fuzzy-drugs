@@ -1,0 +1,43 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/fuzzy-drugs-core",
+    "crates/fuzzy-drugs-llm",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Fuzzy Drugs Team"]
+
+[workspace.dependencies]
+# Core dependencies
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Database
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# FFI
+uniffi = "0.28"
+
+# Crypto
+sha2 = "0.10"
+hex = "0.4"
+
+# String matching
+strsim = "0.11"
+
+# Testing
+proptest = "1.4"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "z"
+strip = true
